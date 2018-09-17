@@ -5,8 +5,21 @@ from models import networks
 
 
 class BaseModel:
-    def __init__(self, opt):
+    def __init__(self, opt=None):
         self.model_name = 'BaseModel'
+        self.loss_names = []
+        self.model_names = []
+        self.visual_names = []
+        self.image_paths = []
+        self.opt = opt
+        self.gpu_ids = None
+        self.isTrain = None
+        self.device = None
+        self.save_dir = None
+        self.input = None
+        self.schedulers = None
+
+    def initialize(self, opt):
         self.opt = opt
         self.gpu_ids = opt.gpu_ids
         self.isTrain = opt.isTrain
@@ -14,22 +27,18 @@ class BaseModel:
         self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)
         if opt.resize_or_crop != 'scale_width':
             torch.backends.cudnn.benchmark = True
-        self.loss_names = []
-        self.model_names = []
-        self.visual_names = []
-        self.image_paths = []
 
     def name(self):
         return self.model_name
 
-    def set_input(self, input):
-        self.input = input
+    def set_input(self, data_input):
+        self.input = data_input
 
     def forward(self):
         pass
 
     # load and print networks; create schedulers
-    def setup(self, opt, parser=None):
+    def setup(self, opt):
         if self.isTrain:
             self.schedulers = [networks.get_scheduler(optimizer, opt) for optimizer in self.optimizers]
 
@@ -137,8 +146,9 @@ class BaseModel:
                 print('[Network %s] Total number of parameters : %.3f M' % (name, num_params / 1e6))
         print('-----------------------------------------------')
 
-    # set requies_grad=Fasle to avoid computation
-    def set_requires_grad(self, nets, requires_grad=False):
+    # set requires_grad=False to avoid computation
+    @staticmethod
+    def set_requires_grad(nets, requires_grad=False):
         if not isinstance(nets, list):
             nets = [nets]
         for net in nets:

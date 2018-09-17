@@ -1,0 +1,15 @@
+# pycharm
+/.idea/*
+*.xml
+
+# python
+*.so
+*.egg
+*.egg-info
+dist
+build
+
+# project
+/checkpoints/*
+/results/*
+/scripts/*
